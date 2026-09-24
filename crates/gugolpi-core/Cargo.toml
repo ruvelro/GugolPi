@@ -1,0 +1,24 @@
+[package]
+name = "gugolpi-core"
+description = "Núcleo de GugolPi: aritmética, benchmarks Pi/Radical/Zeta, ficha de sistema y resultados"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+readme = "../../README.md"
+keywords = ["benchmark", "cpu", "pi", "superpi", "wprime"]
+categories = ["command-line-utilities", "mathematics"]
+build = "build.rs"
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+sysinfo.workspace = true
+core_affinity.workspace = true
+sha2.workspace = true
+
+[lints]
+workspace = true

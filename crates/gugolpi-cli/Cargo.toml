@@ -1,0 +1,28 @@
+[package]
+name = "gugolpi-cli"
+description = "CLI de GugolPi: benchmarks Pi, Radical y Zeta desde la terminal"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+readme = "../../README.md"
+default-run = "gugolpi"
+
+[[bin]]
+name = "gugolpi"
+path = "src/main.rs"
+
+[dependencies]
+gugolpi-core.workspace = true
+clap.workspace = true
+anyhow.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+assert_cmd.workspace = true
+predicates.workspace = true
+
+[lints]
+workspace = true

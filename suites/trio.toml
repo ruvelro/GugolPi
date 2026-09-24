@@ -1,0 +1,21 @@
+# La tarjeta de presentación de GugolPi. Requiere los tres módulos.
+[suite]
+name = "trio"
+repeat = 3
+
+[[test]]
+module = "pi"
+size = "1M"
+mode = "single"
+
+[[test]]
+module = "radical"
+size = "32M"
+mode = "multi"
+threads = "auto"
+
+[[test]]
+module = "zeta"
+size = "1G"
+mode = "multi"
+threads = "auto"

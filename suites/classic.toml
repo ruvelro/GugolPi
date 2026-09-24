@@ -1,0 +1,15 @@
+# Las dos cifras de siempre. Requiere el módulo Pi (pendiente en la 1.0).
+[suite]
+name = "classic"
+repeat = 1
+
+[[test]]
+module = "pi"
+size = "1M"
+mode = "single"
+
+[[test]]
+module = "radical"
+size = "32M"
+mode = "multi"
+threads = "auto"
