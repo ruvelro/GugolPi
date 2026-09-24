@@ -37,10 +37,18 @@ pub struct GlobalArgs {
 /// Subcomandos.
 #[derive(Debug, Subcommand)]
 pub enum Command {
+    /// Dígitos de Pi por Gauss–Legendre (compatible con SuperPi 16K–32M).
+    Pi(PiArgs),
     /// Raíces cuadradas de 1..N por Newton (compatible con wPrime 32M / 1024M).
     Radical(RadicalArgs),
+    /// Primos hasta N por criba segmentada (propio de GugolPi: 100M, 1G, 10G).
+    Zeta(ZetaArgs),
+    /// Ejecuta una suite: un preset (classic, trio, full) o un fichero TOML.
+    Suite(SuiteArgs),
     /// Ficha del sistema.
     Sysinfo(SysinfoArgs),
+    /// Compara ficheros de resultado.
+    Compare(CompareArgs),
 }
 
 /// Opciones compartidas por los módulos de benchmark.
@@ -58,9 +66,30 @@ pub struct RunArgs {
     #[arg(long)]
     pub affinity: bool,
 
-    /// Repite el run N veces e informa mejor, media y desviación.
+    /// Repite cada run N veces e informa mejor, media y desviación.
     #[arg(long, default_value_t = 1, value_parser = clap::value_parser!(u32).range(1..))]
     pub repeat: u32,
+
+    /// Barrido de escalado: ejecuta con 1, 2, 4 … hilos hasta las CPU lógicas y muestra el
+    /// speedup. Ignora --mode y --threads.
+    #[arg(long)]
+    pub scaling: bool,
+}
+
+/// Argumentos de `gugolpi pi`.
+#[derive(Debug, Args)]
+pub struct PiArgs {
+    /// Tamaño: `16K`, `32K`, … `1M`, … `32M` (oficiales, como SuperPi).
+    #[arg(long, default_value = "1M")]
+    pub size: String,
+
+    /// Guarda los dígitos calculados en este fichero (fuera del tiempo medido).
+    #[arg(long, value_name = "FICHERO")]
+    pub save_digits: Option<PathBuf>,
+
+    /// Opciones comunes de ejecución. En modo multi cada hilo es una instancia independiente.
+    #[command(flatten)]
+    pub run: RunArgs,
 }
 
 /// Argumentos de `gugolpi radical`.
@@ -79,9 +108,52 @@ pub struct RadicalArgs {
     pub run: RunArgs,
 }
 
+/// Argumentos de `gugolpi zeta`.
+#[derive(Debug, Args)]
+pub struct ZetaArgs {
+    /// Tamaño: `1G`, `10G`, `100G` (oficiales), `100M` o un N libre.
+    #[arg(long, default_value = "10G")]
+    pub size: String,
+
+    /// Opciones comunes de ejecución.
+    #[command(flatten)]
+    pub run: RunArgs,
+}
+
+/// Argumentos de `gugolpi suite`.
+#[derive(Debug, Args)]
+pub struct SuiteArgs {
+    /// Nombre de un preset (`classic`, `trio`, `full`) o ruta a un fichero TOML.
+    pub suite: String,
+
+    /// Repeticiones de cada test (sobrescribe el valor del fichero).
+    #[arg(long, value_parser = clap::value_parser!(u32).range(1..))]
+    pub repeat: Option<u32>,
+
+    /// Sólo muestra el plan de la suite, sin ejecutar nada.
+    #[arg(long)]
+    pub dry_run: bool,
+}
+
 /// Argumentos de `gugolpi sysinfo`.
 #[derive(Debug, Args)]
 pub struct SysinfoArgs {}
+
+/// Argumentos de `gugolpi compare`.
+#[derive(Debug, Args)]
+pub struct CompareArgs {
+    /// Ficheros JSON de resultado o directorios que los contengan.
+    #[arg(required = true, value_name = "FICHERO")]
+    pub inputs: Vec<PathBuf>,
+
+    /// Salida en CSV.
+    #[arg(long)]
+    pub csv: bool,
+
+    /// Incluye runs no oficiales (tamaños libres, opciones que alteran la carga).
+    #[arg(long)]
+    pub include_unofficial: bool,
+}
 
 fn parse_mode(text: &str) -> Result<Mode, String> {
     text.parse().map_err(|e: gugolpi_core::Error| e.to_string())

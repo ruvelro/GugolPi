@@ -16,6 +16,6 @@ threads = "auto"
 
 [[test]]
 module = "zeta"
-size = "1G"
+size = "10G"
 mode = "multi"
 threads = "auto"

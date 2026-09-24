@@ -175,7 +175,7 @@ impl Benchmark for Radical {
         Module::Radical
     }
 
-    fn memory_required(&self, _config: &RunConfig) -> u64 {
+    fn memory_required(&self, _config: &RunConfig, _system: &SystemInfo) -> u64 {
         // Sólo pilas de hilo y contadores: despreciable.
         16 << 20
     }

@@ -1,0 +1,59 @@
+# Suite completa: los tres módulos en single y multi, más el barrido de escalado de cada uno.
+[suite]
+name = "full"
+repeat = 1
+
+[[test]]
+module = "pi"
+size = "1M"
+mode = "single"
+
+[[test]]
+module = "pi"
+size = "32M"
+mode = "single"
+
+[[test]]
+module = "pi"
+size = "1M"
+mode = "multi"
+threads = "auto"
+label = "pi 1M instancias"
+
+[[test]]
+module = "radical"
+size = "32M"
+mode = "multi"
+threads = "auto"
+
+[[test]]
+module = "radical"
+size = "1024M"
+mode = "multi"
+threads = "auto"
+
+[[test]]
+module = "zeta"
+size = "10G"
+mode = "single"
+
+[[test]]
+module = "zeta"
+size = "100G"
+mode = "multi"
+threads = "auto"
+
+[[test]]
+module = "pi"
+size = "256K"
+scaling = true
+
+[[test]]
+module = "radical"
+size = "32M"
+scaling = true
+
+[[test]]
+module = "zeta"
+size = "10G"
+scaling = true

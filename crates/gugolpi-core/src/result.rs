@@ -58,14 +58,19 @@ impl RunResult {
         // serde_json serializa los campos en orden de declaración, sin espacios: eso es el
         // formato canónico. Un fallo de serialización es imposible para estos tipos.
         let bytes = serde_json::to_vec(self).unwrap_or_default();
-        let digest = Sha256::digest(&bytes);
-        digest
-            .iter()
-            .fold(String::with_capacity(64), |mut acc, byte| {
-                let _ = write!(acc, "{byte:02x}");
-                acc
-            })
+        sha256_hex(&bytes)
     }
+}
+
+/// SHA-256 en hexadecimal minúsculo.
+pub fn sha256_hex(bytes: &[u8]) -> String {
+    let digest = Sha256::digest(bytes);
+    digest
+        .iter()
+        .fold(String::with_capacity(64), |mut acc, byte| {
+            let _ = write!(acc, "{byte:02x}");
+            acc
+        })
 }
 
 /// Build que produjo el resultado.
@@ -166,6 +171,8 @@ pub enum VerificationStatus {
     Passed,
     /// El resultado no coincide: CPU inestable o bug.
     Failed,
+    /// No hay referencia con la que cotejar (tamaño libre o extendido sin tabla).
+    Unverified,
 }
 
 /// Verificación matemática del run.
@@ -260,6 +267,27 @@ mod tests {
         let back: RunResult = serde_json::from_str(&json).expect("parse");
         assert_eq!(back, result);
         assert!(back.integrity_ok());
+    }
+
+    #[test]
+    fn integrity_survives_pretty_json_with_awkward_floats() {
+        // serde_json necesita `float_roundtrip` para que estos valores vuelvan bit a bit.
+        let mut result = sample();
+        result.timing.total_seconds = 4.003_214_667;
+        result.timing.throughput = 261_933.492_761_156_5;
+        result.timing.per_thread_seconds = vec![
+            4.001_138_875,
+            1.0 / 3.0,
+            0.1 + 0.2,
+            1e-7,
+            123_456_789.123_456_78,
+        ];
+        result.verification.max_fft_error = Some(5.9e-3);
+        result.seal();
+        let json = serde_json::to_string_pretty(&result).expect("json");
+        let back: RunResult = serde_json::from_str(&json).expect("parse");
+        assert!(back.integrity_ok());
+        assert_eq!(back, result);
     }
 
     #[test]

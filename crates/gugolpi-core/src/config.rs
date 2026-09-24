@@ -43,7 +43,7 @@ impl Module {
                 "16K", "32K", "64K", "128K", "256K", "512K", "1M", "2M", "4M", "8M", "16M", "32M",
             ],
             Module::Radical => &["32M", "1024M"],
-            Module::Zeta => &["100M", "1G", "10G"],
+            Module::Zeta => &["1G", "10G", "100G"],
         }
     }
 
@@ -52,7 +52,7 @@ impl Module {
         match self {
             Module::Pi => &["64M", "128M", "256M", "512M", "1G"],
             Module::Radical => &["128M", "4096M"],
-            Module::Zeta => &["100G"],
+            Module::Zeta => &["100M"],
         }
     }
 
@@ -246,6 +246,29 @@ pub struct RadicalOptions {
     pub static_split: bool,
 }
 
+/// Opciones específicas del módulo Pi.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct PiOptions {
+    /// Ruta donde guardar los dígitos (`3.1415…`) al terminar, fuera del tiempo medido.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub save_digits: Option<std::path::PathBuf>,
+}
+
+impl PiOptions {
+    /// `true` si alguna opción altera la carga de trabajo (ninguna, por ahora).
+    pub fn alters_workload(&self) -> bool {
+        false
+    }
+}
+
+impl RadicalOptions {
+    /// `true` si alguna opción altera la carga de trabajo.
+    pub fn alters_workload(&self) -> bool {
+        self.static_split
+    }
+}
+
 /// Configuración completa de un run.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RunConfig {
@@ -265,6 +288,9 @@ pub struct RunConfig {
     /// Opciones del módulo Radical.
     #[serde(default, skip_serializing_if = "is_default")]
     pub radical: RadicalOptions,
+    /// Opciones del módulo Pi.
+    #[serde(default, skip_serializing_if = "is_default")]
+    pub pi: PiOptions,
 }
 
 fn is_default<T: Default + PartialEq>(value: &T) -> bool {
@@ -281,6 +307,7 @@ impl RunConfig {
             threads: Threads::Auto,
             affinity: false,
             radical: RadicalOptions::default(),
+            pi: PiOptions::default(),
         })
     }
 
@@ -294,7 +321,7 @@ impl RunConfig {
 
     /// `true` si el run puntúa oficialmente: tamaño oficial y sin opciones que alteren la carga.
     pub fn is_official(&self) -> bool {
-        self.size.official && self.radical == RadicalOptions::default()
+        self.size.official && !self.radical.alters_workload() && !self.pi.alters_workload()
     }
 }
 
@@ -360,6 +387,10 @@ mod tests {
         assert!(size.official);
         let size = Module::Zeta
             .parse_size("100G")
+            .unwrap_or_else(|e| panic!("{e}"));
+        assert!(size.official);
+        let size = Module::Zeta
+            .parse_size("100M")
             .unwrap_or_else(|e| panic!("{e}"));
         assert!(!size.official);
     }

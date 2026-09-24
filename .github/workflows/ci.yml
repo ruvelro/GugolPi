@@ -38,7 +38,10 @@ jobs:
       - name: Smoke test de la CLI
         run: |
           cargo run --release -p gugolpi-cli -- sysinfo
+          cargo run --release -p gugolpi-cli -- pi --size 256K --quiet
           cargo run --release -p gugolpi-cli -- radical --size 2000000 --mode multi --threads 2 --json --quiet
+          cargo run --release -p gugolpi-cli -- zeta --size 1G --mode multi --threads 2 --quiet
+          cargo run --release -p gugolpi-cli -- suite full --dry-run
 
   deny:
     name: Licencias y avisos (cargo-deny)

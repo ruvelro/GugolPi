@@ -16,8 +16,9 @@ pub trait Benchmark: Send + Sync {
     /// Módulo que implementa.
     fn module(&self) -> Module;
 
-    /// Estima la memoria necesaria en bytes para la configuración dada.
-    fn memory_required(&self, config: &RunConfig) -> u64;
+    /// Estima la memoria necesaria en bytes para la configuración dada en la máquina descrita
+    /// por `system` (los hilos efectivos dependen de ella).
+    fn memory_required(&self, config: &RunConfig, system: &SystemInfo) -> u64;
 
     /// Ejecuta el benchmark y devuelve el resultado ya verificado y sellado.
     ///
@@ -60,8 +61,9 @@ impl CancelToken {
 /// Un módulo definido en la spec pero aún no implementado devuelve [`Error::Unavailable`].
 pub fn benchmark_for(module: Module) -> Result<Box<dyn Benchmark>> {
     match module {
+        Module::Pi => Ok(Box::new(crate::pi::Pi)),
         Module::Radical => Ok(Box::new(crate::radical::Radical)),
-        Module::Pi | Module::Zeta => Err(Error::Unavailable(module)),
+        Module::Zeta => Ok(Box::new(crate::zeta::Zeta)),
     }
 }
 
@@ -78,7 +80,7 @@ pub(crate) fn preflight(
             benchmark.module()
         )));
     }
-    let required = benchmark.memory_required(config);
+    let required = benchmark.memory_required(config, system);
     if required > system.available_memory_bytes {
         return Err(Error::InsufficientMemory {
             required,

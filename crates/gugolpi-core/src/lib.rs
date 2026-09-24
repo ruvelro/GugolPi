@@ -22,14 +22,17 @@
 )]
 
 pub mod benchmark;
+pub mod bignum;
 pub mod config;
 pub mod error;
+pub mod pi;
 pub mod progress;
 pub mod radical;
 pub mod result;
 pub mod score;
 pub mod sysinfo;
 pub mod timeutil;
+pub mod zeta;
 
 pub use benchmark::{Benchmark, CancelToken, benchmark_for};
 pub use config::{Mode, Module, RunConfig, Size, Threads};

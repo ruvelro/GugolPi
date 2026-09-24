@@ -1,0 +1,77 @@
+{
+  "method": "Gauss-Legendre, Python decimal (libmpdec)",
+  "sizes": [
+    {
+      "label": "16K",
+      "digits": 16384,
+      "sha256": "7e0fbde2cdea91d86396eb8d585cd07267460ca7b22871d2985dc0568e3cbd9b",
+      "last_digits": "31002797665935838758"
+    },
+    {
+      "label": "32K",
+      "digits": 32768,
+      "sha256": "ef215fb31d300d51ba7817735f8b614897313d16b7253a242072e39336fbec0b",
+      "last_digits": "53471885372293096161"
+    },
+    {
+      "label": "64K",
+      "digits": 65536,
+      "sha256": "1654e3aaf15083b22841608f39ce0533724f5afc57b3332cc0f40c6c13274044",
+      "last_digits": "54302210909472721073"
+    },
+    {
+      "label": "128K",
+      "digits": 131072,
+      "sha256": "adb3261f4cdd37f5c0074920e64a3fc9d1675280c05a11c097eab256ec94d1ed",
+      "last_digits": "27594750178122678581"
+    },
+    {
+      "label": "256K",
+      "digits": 262144,
+      "sha256": "0fe92c3203bc1a034ae1f1a169ad3585020438d26dd4e5ae4750021eb2dae865",
+      "last_digits": "74841548524687471869"
+    },
+    {
+      "label": "512K",
+      "digits": 524288,
+      "sha256": "b2f02b62d35d62d05eba866342eab6fff0860abb37467fcc26efd911355a9fe1",
+      "last_digits": "69678446051551761653"
+    },
+    {
+      "label": "1M",
+      "digits": 1048576,
+      "sha256": "f09ba8137bd6aa789764f666c119b58db5cd7d313ed8be7967af230cb1bd44b1",
+      "last_digits": "33170994591637429204"
+    },
+    {
+      "label": "2M",
+      "digits": 2097152,
+      "sha256": "255c1ccf090905850d107cd57438f3d1e362b5c5b55043aa54ce45f3fc47c96b",
+      "last_digits": "63207750323664312379"
+    },
+    {
+      "label": "4M",
+      "digits": 4194304,
+      "sha256": "e346ccbe066c59a70aa0f9d1b1f65e0d1a0b6a896d19e41fa73630c8009175ed",
+      "last_digits": "80258565140638311120"
+    },
+    {
+      "label": "8M",
+      "digits": 8388608,
+      "sha256": "96fdc3cd30fa04b038b5e30adfd6353c58b7cb19dc771bb0c2656e471ab49534",
+      "last_digits": "17423342216340425119"
+    },
+    {
+      "label": "16M",
+      "digits": 16777216,
+      "sha256": "65ca4431b92e284febbd187790f0ccb03287ba43bf8c76b3cc0fa736b52424fb",
+      "last_digits": "28229791155273188571"
+    },
+    {
+      "label": "32M",
+      "digits": 33554432,
+      "sha256": "3ed4c8bbd858967342e3d883e2037165280ec2a62e81395a0f3af666d89c103e",
+      "last_digits": "49255830905226097306"
+    }
+  ]
+}

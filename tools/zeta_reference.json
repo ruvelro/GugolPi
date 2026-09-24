@@ -1,0 +1,29 @@
+{
+  "method": "criba segmentada de impares, Python bytearray",
+  "sizes": [
+    {
+      "n": 100000000,
+      "prime_count": 5761455,
+      "prime_sum": "279209790387276",
+      "prime_sum_mod_2_64": "0000fdf0985fb44c"
+    },
+    {
+      "n": 1000000000,
+      "prime_count": 50847534,
+      "prime_sum": "24739512092254535",
+      "prime_sum_mod_2_64": "0057e474862ce147"
+    },
+    {
+      "n": 10000000000,
+      "prime_count": 455052511,
+      "prime_sum": "2220822432581729238",
+      "prime_sum_mod_2_64": "1ed1f23c6b40bbd6"
+    },
+    {
+      "n": 100000000000,
+      "prime_count": 4118054813,
+      "prime_sum": "201467077743744681014",
+      "prime_sum_mod_2_64": "ebead7ca23e88436"
+    }
+  ]
+}

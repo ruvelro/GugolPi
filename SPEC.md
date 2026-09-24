@@ -77,8 +77,8 @@ La convergencia es cuadrática: cada iteración dobla los dígitos correctos. Es
 
 | Componente | Diseño | Motivo |
 | --- | --- | --- |
-| Representación | Punto fijo, limbs en base 10^4 (motor f64) o 2^64 (motor NTT) | Base 10^4 da decimales directos y coincide con el perfil FPU de SuperPi |
-| Multiplicación | FFT compleja en f64, radix-4/split-radix, convolución en ángulo recto (right-angle) para halvar tamaño | Es lo que hacía SuperPi; carga FPU + ancho de banda de memoria |
+| Representación | Punto fijo, limbs en base 10^4 (motor f64) o 2^64 (motor NTT); antes de cada FFT los limbs se balancean a [−5000, 5000) (ADR-0005) | Base 10^4 da decimales directos y coincide con el perfil FPU de SuperPi; el balanceo reduce el error de redondeo varios órdenes de magnitud |
+| Multiplicación | FFT compleja en f64 radix-2 con tablas de twiddles contiguas por etapa y dos secuencias reales empaquetadas en una transformada ("dos por uno"); el cuadrado usa una sola transformada directa | Es lo que hacía SuperPi; carga FPU + ancho de banda de memoria |
 | Control de error FFT | Comprobar que el máximo error de redondeo < 0,25 por coeficiente; si no, invalidar el run | Detecta CPUs inestables como hacía SuperPi ("not exact in round") |
 | Raíz cuadrada | Newton sobre 1/√x con precisión creciente (doblando cada paso) | Estándar; coste ≈ 1,5–2 multiplicaciones |
 | División final | Newton sobre 1/x, una sola vez al final | Coste despreciable frente a los loops |
@@ -100,7 +100,7 @@ La convergencia es cuadrática: cada iteración dobla los dígitos correctos. Es
 - Resumen: tamaño, modo, hilos, tiempo total, dígitos/s, resultado de verificación (hash de dígitos vs. referencia embebida), error máximo FFT.
 - Opcional: fichero con los dígitos (formato texto, 100 dígitos por línea) y el fichero de resultado (sección 10).
 
-**Requisitos de memoria**: ≈ 12 bytes por dígito en el motor f64 (unos 400 MB para 32M). El programa comprueba la RAM libre antes de arrancar y rechaza tamaños que no caben.
+**Requisitos de memoria**: ≈ 55 bytes por dígito en el motor f64 (67 MB para 1M, 1,8 GB para 32M medidos: el búfer de la FFT de 2^25 puntos y sus tablas de twiddles dominan). El programa comprueba la RAM libre antes de arrancar y rechaza tamaños que no caben.
 
 ## 4. Módulo Radical (wPrime)
 
@@ -156,7 +156,7 @@ Complementa a los otros dos: Pi mide FPU y ancho de banda de memoria, Radical mi
 
 1. Calcular los primos de criba hasta √N con una criba simple.
 2. Recorrer [2, N] por segmentos de tamaño igual a la caché L1 de datos (32 a 64 KB), con rueda módulo 30: un byte representa 30 números (8 residuos coprimos), sin pares ni múltiplos de 3 y 5.
-3. En cada segmento, marcar múltiplos de cada primo de criba a partir de su primer múltiplo en el segmento (con offset guardado entre segmentos); los primos grandes (mayores que el segmento) se tratan con cubos (bucket sieve) para no recorrer el segmento en vano.
+3. En cada segmento, marcar múltiplos de cada primo de criba a partir de su primer múltiplo en el segmento (con offset guardado entre segmentos), con un ciclo de 8 incrementos de byte y 8 máscaras precalculados por primo. Hasta 100G todos los primos de criba caben en un segmento; el bucket sieve para primos mayores queda para cuando se supere 10^12 (ADR-0006).
 4. Contar bits a cero con popcount; acumular π(N) y un checksum de 64 bits (suma módulo 2^64 de los primos) que se compara con la referencia embebida.
 
 No se usa ninguna biblioteca externa de criba: el código es propio para que la carga sea estable entre versiones.
@@ -165,19 +165,19 @@ No se usa ninguna biblioteca externa de criba: el código es propio para que la 
 
 | Nombre | N | π(N) esperado | Uso |
 | --- | --- | --- | --- |
-| Zeta 100M | 10^8 | 5 761 455 | Rápido (< 1 s) |
-| Zeta 1G | 10^9 | 50 847 534 | Cifra insignia |
-| Zeta 10G | 10^10 | 455 052 511 | Largo |
-| Zeta 100G | 10^11 | 4 118 054 813 | Extendido, multicore |
+| Zeta 100M | 10^8 | 5 761 455 | Extendido, prueba rápida (no puntúa) |
+| Zeta 1G | 10^9 | 50 847 534 | Rápido (≈ 0,4 s single) |
+| Zeta 10G | 10^10 | 455 052 511 | Cifra insignia (≈ 4 s single) |
+| Zeta 100G | 10^11 | 4 118 054 813 | Largo, multicore |
 
-La memoria es mínima (primos de criba hasta √N y un búfer por hilo): Zeta 100G cabe en menos de 50 MB, por lo que es un test puro de núcleo y caché.
+La memoria es mínima (primos de criba hasta √N y un búfer por hilo): Zeta 100G cabe en menos de 50 MB, por lo que es un test puro de núcleo y caché. El reparto multi usa bloques de 16 segmentos (≈ 15,7 M números) en cola dinámica.
 
 **Modos**
 
 | Modo | Reparto | Cifra |
 | --- | --- | --- |
 | Single | 1 hilo, afinidad fija | Tiempo total, números cribados/s |
-| Multi | Bloques contiguos de segmentos en cola dinámica, un búfer por hilo | Tiempo total, speedup vs. single |
+| Multi | Bloques de 16 segmentos en cola dinámica, un búfer por hilo | Tiempo total, speedup vs. single |
 | Escalado | Barrido 1, 2, 4 … N hilos | Curva de speedup |
 
 **Verificación**: π(N) exacto y checksum idéntico a la referencia; además, cotejo intermedio en cada potencia de 10. Cualquier discrepancia invalida el run.
@@ -239,20 +239,20 @@ Todo lo que hace la GUI se puede hacer desde la CLI `gugolpi`, sin ventana, con 
 | --- | --- | --- | --- |
 | `pi` | Un run del módulo Pi | `gugolpi pi --size 1M` | 1.0 |
 | `radical` | Un run del módulo Radical | `gugolpi radical --size 32M --threads auto` | 1.0 |
-| `zeta` | Un run del módulo Zeta | `gugolpi zeta --size 1G --threads auto` | 1.0 |
+| `zeta` | Un run del módulo Zeta | `gugolpi zeta --size 10G --mode multi` | 1.0 |
 | `suite` | Ejecuta una suite definida en fichero | `gugolpi suite trio --repeat 3 --out results/` | 1.0 |
 | `sysinfo` | Ficha del sistema en JSON | `gugolpi sysinfo` | 1.0 |
 | `compare` | Tabla comparativa de varios resultados | `gugolpi compare a.json b.json --csv` | 1.0 |
 | `googol` | Modo Gúgol con una o varias cargas | `gugolpi googol pi,primes --duration 2h --max-mem 8G` | 1.2 |
 | `verify` | Comprueba la firma e integridad de un fichero de resultado | `gugolpi verify run-2026-09-24.json` | 1.3 |
 
-**Opciones comunes**: `--mode single|multi`, `--threads N|auto|physical`, `--affinity`, `--repeat N` (informa mejor, media y desviación), `--warmup`, `--json`, `--csv`, `--quiet`, `--out DIR`, `--engine f64|ntt` (sólo f64 puntuable).
+**Opciones comunes**: `--mode single|multi`, `--threads N|auto|physical`, `--affinity`, `--repeat N` (informa mejor, media y desviación), `--scaling` (barrido 1, 2, 4 … hilos con tabla de speedup), `--json`, `--quiet`, `--out DIR`. Previstas: `--warmup`, `--engine f64|ntt` (1.3).
 
 **Suites** (fichero TOML). Presets incluidos:
 
 - `classic`: Pi 1M single + Radical 32M multi (las dos cifras de siempre).
-- `trio`: Pi 1M single, Radical 32M multi, Zeta 1G multi (la tarjeta de presentación de GugolPi).
-- `full`: Pi 1M y 32M single; Pi 1M instancias; Radical 32M y 1024M multi; Zeta 1G single y 10G multi; barrido de escalado de los tres.
+- `trio`: Pi 1M single, Radical 32M multi, Zeta 10G multi (la tarjeta de presentación de GugolPi).
+- `full`: Pi 1M y 32M single; Pi 1M instancias; Radical 32M y 1024M multi; Zeta 10G single y 100G multi; barrido de escalado de los tres (`scaling = true` en el TOML).
 - `stability` (1.2): Pi 32M × 3 + Gúgol Pi 30 min + Gúgol Radical 30 min + Gúgol Primos 30 min.
 
 ```toml
@@ -272,7 +272,8 @@ threads = "auto"
 
 [[test]]
 module = "zeta"
-size = "1G"
+size = "10G"
+mode = "multi"
 threads = "auto"
 ```
 
@@ -394,7 +395,7 @@ Un resultado es válido si el cálculo verifica, el fichero está íntegro y el 
 **Reglas de comparabilidad**
 
 1. Mismo `score_version`. Se incrementa cuando cambia la FFT, el orden de operaciones, los tamaños o cualquier cosa que mueva los tiempos.
-2. Mismo test, tamaño y modo. "Pi 1M single" es la cifra insignia; "Radical 32M multi" y "Zeta 1G multi" la acompañan.
+2. Mismo test, tamaño y modo. "Pi 1M single" es la cifra insignia; "Radical 32M multi" y "Zeta 10G multi" la acompañan.
 3. Runs con `official = false` (motor NTT, tamaños extendidos, opciones experimentales) se muestran, pero no entran en rankings ni en `compare` sin `--include-unofficial`.
 4. Con `--repeat`, la cifra que se compara es la mejor de las repeticiones (convención de SuperPi), y se informan media y desviación.
 
@@ -406,7 +407,7 @@ La 1.0 es el núcleo más la CLI: suficiente para probar la herramienta y compar
 
 | Versión | Contenido | Criterio de salida |
 | --- | --- | --- |
-| 1.0 | `gugolpi-core` (bignum, Pi, Radical, Zeta, single y multi), CLI (`pi`, `radical`, `zeta`, `suite`, `sysinfo`, `compare`), JSON/CSV, verificación, CI en tres SO, licencia MIT | Dígitos correctos de 16K a 32M; Radical 32M/1024M y Zeta 1G/10G verifican; Pi 1M por debajo de 10 s en un portátil actual; suite `trio` corre en GitHub Actions |
+| 1.0 | `gugolpi-core` (bignum, Pi, Radical, Zeta, single y multi), CLI (`pi`, `radical`, `zeta`, `suite`, `sysinfo`, `compare`), JSON/CSV, verificación, CI en tres SO, licencia MIT | Dígitos correctos de 16K a 32M; Radical 32M/1024M y Zeta 1G/10G/100G verifican; Pi 1M por debajo de 10 s en un portátil actual (3,0 s en un M5; 32M en 201 s); suite `trio` corre en GitHub Actions |
 | 1.1 | GUI Tauri 2: lanzar tests, loops en vivo, ficha del sistema, histórico local | Un run desde GUI y desde CLI producen el mismo fichero |
 | 1.2 | Modo Gúgol con las tres cargas, sensores, preset `stability` | 2 h de Gúgol combinado sin falsos positivos en una máquina estable |
 | 1.3 | Firma Ed25519 y `verify`, tabla de correlación con los originales, tamaños extendidos, motor NTT, Zeta-LL, modo Legacy | Release con instaladores para las tres plataformas |
@@ -429,6 +430,7 @@ La 1.0 es el núcleo más la CLI: suficiente para probar la herramienta y compar
 - [x] Licencia: MIT. Repositorio público en GitHub.
 - [x] 1.0 sin GUI ni Gúgol; se añaden en 1.1 y 1.2.
 - [x] Zeta-LL, modo Legacy, motor NTT y tamaños extendidos: 1.3.
+- [x] Dígitos balanceados en la FFT (ADR-0005) y tamaños de Zeta 1G/10G/100G con 10G de insignia (ADR-0006).
 
 **Pendiente (no bloquea la 1.0)**
 

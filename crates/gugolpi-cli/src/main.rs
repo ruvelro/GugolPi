@@ -4,6 +4,7 @@
 //! resultados. No contiene lógica de cálculo ni de medición.
 
 #![allow(clippy::print_stdout, clippy::print_stderr)]
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 mod cli;
 mod commands;
@@ -32,8 +33,12 @@ fn main() {
     };
 
     let outcome = match &cli.command {
+        Command::Pi(args) => commands::pi::run(&cli.global, args),
         Command::Radical(args) => commands::radical::run(&cli.global, args),
+        Command::Zeta(args) => commands::zeta::run(&cli.global, args),
+        Command::Suite(args) => commands::suite::run(&cli.global, args),
         Command::Sysinfo(args) => commands::sysinfo::run(&cli.global, args),
+        Command::Compare(args) => commands::compare::run(&cli.global, args),
     };
 
     match outcome {

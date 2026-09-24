@@ -2,7 +2,7 @@
 
 use anyhow::Context;
 use gugolpi_core::config::RadicalOptions;
-use gugolpi_core::{Module, RunConfig, benchmark_for};
+use gugolpi_core::{Module, RunConfig};
 
 use crate::cli::{GlobalArgs, RadicalArgs};
 use crate::commands::{apply_run_args, execute};
@@ -16,6 +16,5 @@ pub fn run(global: &GlobalArgs, args: &RadicalArgs) -> anyhow::Result<ExitCode> 
     config.radical = RadicalOptions {
         static_split: args.static_split,
     };
-    let benchmark = benchmark_for(Module::Radical)?;
-    execute(global, benchmark.as_ref(), &config, args.run.repeat)
+    execute(global, config, &args.run)
 }

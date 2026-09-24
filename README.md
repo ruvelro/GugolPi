@@ -16,30 +16,31 @@ La especificación completa está en [SPEC.md](SPEC.md).
 
 ## Estado
 
-En desarrollo hacia la 1.0. Disponible ahora:
-
-- `gugolpi radical`: módulo Radical completo (single, multi, reparto dinámico o estático,
-  afinidad, repeticiones, JSON).
-- `gugolpi sysinfo`: ficha del sistema.
-
-Pendiente para la 1.0: módulos Pi y Zeta, `suite` y `compare`.
+Camino a la 1.0: los tres módulos y la CLI completa están implementados y verificados. Falta
+la tabla de correlación con los originales y los instaladores (versión 1.3 en la spec).
 
 ## Uso rápido
 
 ```bash
 cargo build --release
 ./target/release/gugolpi sysinfo
-./target/release/gugolpi radical --size 32M
-./target/release/gugolpi radical --size 32M --mode multi --threads auto
-./target/release/gugolpi radical --size 1024M --mode multi --repeat 3 --out results/
-./target/release/gugolpi radical --size 32M --json > run.json
+./target/release/gugolpi pi --size 1M                      # la cifra insignia, como SuperPi 1M
+./target/release/gugolpi radical --size 32M --mode multi    # como wPrime 32M
+./target/release/gugolpi zeta --size 10G --mode multi       # primos hasta 10^10
+./target/release/gugolpi radical --size 32M --scaling       # barrido 1, 2, 4 … hilos
+./target/release/gugolpi suite trio --repeat 3              # pi 1M + radical 32M + zeta 10G
+./target/release/gugolpi compare results/trio-*/            # tabla comparativa
+./target/release/gugolpi pi --size 1M --json > run.json
 ```
 
 Opciones comunes: `--mode single|multi`, `--threads auto|physical|N`, `--affinity`, `--repeat N`,
-`--json`, `--quiet`, `--out DIR`.
+`--scaling`, `--json`, `--quiet`, `--out DIR`.
 
 Códigos de salida: `0` correcto, `1` error de uso, `2` verificación fallida (CPU inestable),
 `3` recursos insuficientes.
+
+Tiempos orientativos en un Apple M5 (10 núcleos): Pi 1M single 3,0 s, 32M 201 s · Radical 32M
+multi 0,22 s · Zeta 10G single 3,8 s, multi 0,6 s. Pi 32M necesita unos 1,8 GB de RAM.
 
 ## Comparabilidad
 
