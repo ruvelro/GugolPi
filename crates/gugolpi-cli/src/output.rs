@@ -104,24 +104,7 @@ pub fn print_json(results: &[RunResult]) -> anyhow::Result<()> {
 
 /// Guarda un resultado en `dir` con un nombre único y devuelve la ruta.
 pub fn write_result(dir: &Path, result: &RunResult) -> anyhow::Result<PathBuf> {
-    fs::create_dir_all(dir).with_context(|| format!("no se pudo crear {}", dir.display()))?;
-    let cfg = &result.test.config;
-    let stamp = result.timing.started_utc.replace([':', '-'], "");
-    let mut path = dir.join(format!(
-        "{}-{}-{}-{stamp}.json",
-        cfg.module, cfg.size, cfg.mode
-    ));
-    let mut counter = 1;
-    while path.exists() {
-        path = dir.join(format!(
-            "{}-{}-{}-{stamp}-{counter}.json",
-            cfg.module, cfg.size, cfg.mode
-        ));
-        counter += 1;
-    }
-    let json = serde_json::to_string_pretty(result)?;
-    fs::write(&path, json).with_context(|| format!("no se pudo escribir {}", path.display()))?;
-    Ok(path)
+    Ok(result.save_to_dir(dir)?)
 }
 
 fn capitalize(word: &str) -> String {
@@ -145,7 +128,7 @@ fn format_thousands(value: u64) -> String {
 }
 
 /// Tabla del barrido de escalado: mejor tiempo por número de hilos y speedup respecto a 1 hilo.
-pub fn print_scaling_table(rows: &[(crate::commands::Job, Vec<RunResult>)]) {
+pub fn print_scaling_table(rows: &[(gugolpi_core::suite::Job, Vec<RunResult>)]) {
     let Some(first) = rows.first().and_then(|(_, r)| best_time(r)) else {
         return;
     };
@@ -200,7 +183,7 @@ fn verification_label(result: &RunResult) -> &'static str {
 }
 
 /// Tabla final de una suite.
-pub fn print_suite_table(name: &str, rows: &[(crate::commands::Job, Vec<RunResult>)]) {
+pub fn print_suite_table(name: &str, rows: &[(gugolpi_core::suite::Job, Vec<RunResult>)]) {
     println!();
     println!("Suite «{name}»");
     println!(
@@ -230,7 +213,7 @@ pub fn print_suite_table(name: &str, rows: &[(crate::commands::Job, Vec<RunResul
 pub fn write_suite_csv(
     path: &Path,
     suite: &str,
-    rows: &[(crate::commands::Job, Vec<RunResult>)],
+    rows: &[(gugolpi_core::suite::Job, Vec<RunResult>)],
 ) -> anyhow::Result<()> {
     let mut text = String::from(
         "suite,test,module,size,mode,threads,run,total_seconds,throughput,throughput_unit,verification,official,score_version,cpu\n",

@@ -2,10 +2,16 @@
 
 use std::sync::mpsc::{self, Receiver, Sender};
 
+use serde::Serialize;
+
 use crate::config::Module;
 
 /// Evento de progreso emitido por un benchmark mientras corre.
-#[derive(Clone, Debug, PartialEq)]
+///
+/// Se serializa con la etiqueta `kind` (`started`, `advanced`, `loop`, `verifying`, `finished`)
+/// para que la GUI lo reciba tal cual.
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum ProgressEvent {
     /// El cálculo ha empezado (el cronómetro ya corre).

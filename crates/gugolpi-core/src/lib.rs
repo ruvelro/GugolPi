@@ -30,6 +30,7 @@ pub mod progress;
 pub mod radical;
 pub mod result;
 pub mod score;
+pub mod suite;
 pub mod sysinfo;
 pub mod timeutil;
 pub mod zeta;

@@ -40,6 +40,16 @@ pub enum Error {
     #[error("el módulo {0} no está disponible en esta build")]
     Unavailable(Module),
 
+    /// Error de entrada/salida al leer o escribir un fichero.
+    #[error("no se pudo acceder a {path}: {source}")]
+    Io {
+        /// Ruta afectada.
+        path: String,
+        /// Causa.
+        #[source]
+        source: std::io::Error,
+    },
+
     /// Fallo interno que no debería ocurrir (hilo caído, invariante rota).
     #[error("error interno: {0}")]
     Internal(String),

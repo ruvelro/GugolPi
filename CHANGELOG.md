@@ -18,6 +18,10 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es/1.1.0/). Versionado se
   verificación de π(N) y suma de primos contra referencias independientes.
 - CLI: `pi`, `radical`, `zeta` (con `--scaling`), `suite` (presets `classic`, `trio`, `full` o
   TOML propio, `summary.csv`), `compare`, `sysinfo`; `--json`, `--out`, `--repeat`, `--quiet`.
+- GUI de escritorio (Tauri 2): ejecutar módulos y suites con progreso en vivo, historial con
+  comprobación de integridad y ficha del sistema; instaladores para Windows, macOS y Linux
+  generados en CI.
+- Módulo `suite` en el núcleo (presets y expansión a jobs) compartido por CLI y GUI.
 
 ### Puntuación
 

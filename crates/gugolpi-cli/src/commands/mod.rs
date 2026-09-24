@@ -8,15 +8,15 @@ pub mod sysinfo;
 pub mod zeta;
 
 use std::io::Write;
-use std::num::NonZeroUsize;
 use std::sync::mpsc::Receiver;
 use std::thread;
 use std::time::{Duration, Instant};
 
 use anyhow::Context;
+use gugolpi_core::suite::{Job, scaling_jobs};
 use gugolpi_core::{
-    Benchmark, CancelToken, Mode, Progress, ProgressEvent, RunConfig, RunResult, SystemInfo,
-    Threads, benchmark_for,
+    Benchmark, CancelToken, Progress, ProgressEvent, RunConfig, RunResult, SystemInfo,
+    benchmark_for,
 };
 
 use crate::cli::{GlobalArgs, RunArgs};
@@ -28,55 +28,6 @@ pub fn apply_run_args(config: &mut RunConfig, args: &RunArgs) {
     config.mode = args.mode;
     config.threads = args.threads;
     config.affinity = args.affinity;
-}
-
-/// Un run planificado: etiqueta legible y configuración.
-#[derive(Clone, Debug)]
-pub struct Job {
-    /// Etiqueta (`pi 1M single`, `radical 32M multi ×8`).
-    pub label: String,
-    /// Configuración completa.
-    pub config: RunConfig,
-}
-
-impl Job {
-    /// Etiqueta canónica de una configuración.
-    pub fn label_for(config: &RunConfig) -> String {
-        match config.mode {
-            Mode::Single => format!("{} {} single", config.module, config.size),
-            Mode::Multi => format!(
-                "{} {} multi ×{}",
-                config.module, config.size, config.threads
-            ),
-        }
-    }
-
-    /// Un job a partir de una configuración.
-    pub fn from_config(config: RunConfig) -> Self {
-        Self {
-            label: Self::label_for(&config),
-            config,
-        }
-    }
-}
-
-/// Configuraciones del barrido de escalado: 1, 2, 4 … hilos hasta las CPU lógicas (incluidas).
-pub fn scaling_jobs(base: &RunConfig, system: &SystemInfo) -> Vec<Job> {
-    let max = system.logical_cpus.max(1);
-    let mut counts: Vec<usize> = std::iter::successors(Some(1_usize), |&n| Some(n * 2))
-        .take_while(|&n| n < max)
-        .collect();
-    counts.push(max);
-    counts
-        .into_iter()
-        .filter_map(NonZeroUsize::new)
-        .map(|n| {
-            let mut config = base.clone();
-            config.mode = Mode::Multi;
-            config.threads = Threads::Count(n);
-            Job::from_config(config)
-        })
-        .collect()
 }
 
 /// Ejecuta un job `repeat` veces con progreso y resúmenes según las opciones globales.

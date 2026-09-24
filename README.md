@@ -16,8 +16,34 @@ La especificación completa está en [SPEC.md](SPEC.md).
 
 ## Estado
 
-Camino a la 1.0: los tres módulos y la CLI completa están implementados y verificados. Falta
-la tabla de correlación con los originales y los instaladores (versión 1.3 en la spec).
+Camino a la 1.0: los tres módulos, la CLI completa y la interfaz gráfica están implementados y
+verificados. Falta la tabla de correlación con los originales y la publicación de releases
+(versión 1.3 en la spec).
+
+## Interfaz gráfica
+
+`apps/gugolpi-gui` es una app de escritorio (Tauri 2) sobre el mismo núcleo: vistas Ejecutar
+(módulo, tamaño, modo, hilos, repeticiones, barrido de escalado, progreso en vivo con los loops
+de Pi), Suites, Historial (los mismos JSON que escribe la CLI, con comprobación de integridad)
+y Sistema. Los resultados se guardan en el directorio de datos de la aplicación.
+
+Instaladores: cada push a `main` genera en la acción **GUI** de GitHub Actions un artefacto por
+sistema: `gugolpi-gui-windows-latest` (instalador NSIS `.exe`, `.msi` y el ejecutable suelto),
+`gugolpi-gui-macos-latest` (`.dmg`) y `gugolpi-gui-ubuntu-latest` (`.AppImage`, `.deb`).
+Windows necesita WebView2, incluido en Windows 10/11.
+
+Para compilarla en local (requiere Node 20+ y, en Windows, las herramientas de C++ de Visual
+Studio):
+
+```bash
+cd apps/gugolpi-gui
+npm ci
+npm run tauri -- dev      # desarrollo con recarga en caliente
+npm run tauri -- build    # instaladores en target/release/bundle/
+```
+
+`npm run dev` sin Tauri abre la interfaz en el navegador con un backend simulado, útil para
+retocar el frontend.
 
 ## Uso rápido
 
@@ -53,8 +79,9 @@ de informe son los mismos, así que la ordenación entre CPUs se mantiene.
 ## Estructura
 
 ```
-crates/gugolpi-core/   biblioteca: benchmarks, resultados, ficha del sistema
+crates/gugolpi-core/   biblioteca: benchmarks, resultados, ficha del sistema, suites
 crates/gugolpi-cli/    binario `gugolpi`
+apps/gugolpi-gui/      app de escritorio (Tauri 2 + Vite/TypeScript)
 docs/adr/              decisiones de arquitectura
 suites/                presets de suites (TOML)
 ```

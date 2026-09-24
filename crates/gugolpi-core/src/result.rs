@@ -54,6 +54,29 @@ impl RunResult {
         }
     }
 
+    /// Guarda el resultado como JSON legible en `dir` con un nombre único
+    /// (`<módulo>-<tamaño>-<modo>-<inicio UTC>[-n].json`) y devuelve la ruta.
+    pub fn save_to_dir(&self, dir: &std::path::Path) -> crate::error::Result<std::path::PathBuf> {
+        let io = |path: &std::path::Path, source| crate::error::Error::Io {
+            path: path.display().to_string(),
+            source,
+        };
+        std::fs::create_dir_all(dir).map_err(|e| io(dir, e))?;
+        let cfg = &self.test.config;
+        let stamp = self.timing.started_utc.replace([':', '-'], "");
+        let stem = format!("{}-{}-{}-{stamp}", cfg.module, cfg.size, cfg.mode);
+        let mut path = dir.join(format!("{stem}.json"));
+        let mut counter = 1;
+        while path.exists() {
+            path = dir.join(format!("{stem}-{counter}.json"));
+            counter += 1;
+        }
+        let json = serde_json::to_string_pretty(self)
+            .map_err(|e| crate::error::Error::Internal(format!("no se pudo serializar: {e}")))?;
+        std::fs::write(&path, json).map_err(|e| io(&path, e))?;
+        Ok(path)
+    }
+
     fn canonical_digest(&self) -> String {
         // serde_json serializa los campos en orden de declaración, sin espacios: eso es el
         // formato canónico. Un fallo de serialización es imposible para estos tipos.

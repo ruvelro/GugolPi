@@ -403,12 +403,12 @@ Un resultado es válido si el cálculo verifica, el fichero está íntegro y el 
 
 ## 11. Roadmap y decisiones
 
-La 1.0 es el núcleo más la CLI: suficiente para probar la herramienta y comparar cifras. GUI, Gúgol y firma llegan en versiones menores sin cambiar la API del núcleo.
+La 1.0 es el núcleo, la CLI y la GUI de escritorio. Gúgol y firma llegan en versiones menores sin cambiar la API del núcleo.
 
 | Versión | Contenido | Criterio de salida |
 | --- | --- | --- |
-| 1.0 | `gugolpi-core` (bignum, Pi, Radical, Zeta, single y multi), CLI (`pi`, `radical`, `zeta`, `suite`, `sysinfo`, `compare`), JSON/CSV, verificación, CI en tres SO, licencia MIT | Dígitos correctos de 16K a 32M; Radical 32M/1024M y Zeta 1G/10G/100G verifican; Pi 1M por debajo de 10 s en un portátil actual (3,0 s en un M5; 32M en 201 s); suite `trio` corre en GitHub Actions |
-| 1.1 | GUI Tauri 2: lanzar tests, loops en vivo, ficha del sistema, histórico local | Un run desde GUI y desde CLI producen el mismo fichero |
+| 1.0 | `gugolpi-core` (bignum, Pi, Radical, Zeta, single y multi), CLI (`pi`, `radical`, `zeta`, `suite`, `sysinfo`, `compare`), GUI Tauri 2 (ejecutar, suites, historial, sistema; instaladores en CI), JSON/CSV, verificación, CI en tres SO, licencia MIT | Dígitos correctos de 16K a 32M; Radical 32M/1024M y Zeta 1G/10G/100G verifican; Pi 1M por debajo de 10 s en un portátil actual (3,0 s en un M5; 32M en 201 s); suite `trio` corre en GitHub Actions |
+| 1.1 | GUI: comparación visual de runs, exportación, preferencias | Un run desde GUI y desde CLI producen el mismo fichero (ya en 1.0) |
 | 1.2 | Modo Gúgol con las tres cargas, sensores, preset `stability` | 2 h de Gúgol combinado sin falsos positivos en una máquina estable |
 | 1.3 | Firma Ed25519 y `verify`, tabla de correlación con los originales, tamaños extendidos, motor NTT, Zeta-LL, modo Legacy | Release con instaladores para las tres plataformas |
 
@@ -425,10 +425,10 @@ La 1.0 es el núcleo más la CLI: suficiente para probar la herramienta y compar
 
 - [x] Módulo de primos: Zeta.
 - [x] Módulo wPrime: Radical.
-- [x] GUI: Tauri 2 (en 1.1).
+- [x] GUI: Tauri 2, adelantada a la 1.0 (vistas Ejecutar, Suites, Historial y Sistema).
 - [x] Pi por defecto: idéntico a SuperPi (single, un hilo); multi = instancias; FFT paralela como opción no oficial.
 - [x] Licencia: MIT. Repositorio público en GitHub.
-- [x] 1.0 sin GUI ni Gúgol; se añaden en 1.1 y 1.2.
+- [x] 1.0 sin Gúgol; llega en 1.2.
 - [x] Zeta-LL, modo Legacy, motor NTT y tamaños extendidos: 1.3.
 - [x] Dígitos balanceados en la FFT (ADR-0005) y tamaños de Zeta 1G/10G/100G con 10G de insignia (ADR-0006).
 
